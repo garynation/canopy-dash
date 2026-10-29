@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Canopy Dash: Dual-Ladder Monkey Climb</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23162d22'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='central' text-anchor='middle' font-size='40'%3E%F0%9F%90%92%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Live Arcade Telemetry Bar -->
+    <header class="top-hud-bar" role="banner">
+      <div class="brand-cluster">
+        <span class="brand-emblem" aria-hidden="true">🐒</span>
+        <div class="brand-titles">
+          <h1 class="brand-title">CANOPY DASH</h1>
+          <span class="brand-subtitle">DUAL-LADDER MONKEY CLIMB</span>
+        </div>
+      </div>
+
+      <div class="hud-metrics-row" role="status" aria-live="polite">
+        <div class="hud-metric-pill">
+          <span class="metric-label">ALTITUDE</span>
+          <span class="metric-value mono-num" id="hud-altitude">0m</span>
+        </div>
+
+        <div class="hud-metric-pill">
+          <span class="metric-label">SCORE</span>
+          <span class="metric-value mono-num" id="hud-score">000000</span>
+        </div>
+
+        <div class="hud-metric-pill metric-hi">
+          <span class="metric-label">BEST RECORD</span>
+          <span class="metric-value mono-num" id="hud-highscore">HI 000000</span>
+        </div>
+
+        <div class="hud-metric-pill">
+          <span class="metric-label">BANANA COMBO</span>
+          <span class="metric-value mono-num combo-badge" id="hud-combo">1x</span>
+        </div>
+
+        <div class="hud-metric-pill">
+          <span class="metric-label">POWER-UP</span>
+          <span class="metric-value powerup-badge" id="hud-powerup" data-state="none">NONE</span>
+        </div>
+
+        <div class="hud-metric-pill speed-gauge-pill">
+          <div class="speed-header">
+            <span class="metric-label">CLIMB SPEED</span>
+            <span class="speed-readout mono-num" id="hud-speed">1.0x</span>
+          </div>
+          <div class="speed-bar-track" aria-hidden="true">
+            <div class="speed-bar-fill" id="hud-speed-bar" style="width: 45%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button type="button" id="btn-mute" class="btn-icon-tonal" aria-pressed="false" title="Toggle Game Audio">
+          <span class="mute-icon" aria-hidden="true">🔊</span>
+          <span class="mute-label">AUDIO ON</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid: Left Stage + Right Side Dashboard Cards -->
+    <main class="workspace-grid">
+      <!-- Center/Left Game Stage Wrapper -->
+      <section class="stage-column" aria-label="Game Stage">
+        <div class="canvas-stage-frame" id="stage-wrapper">
+          <canvas id="game-canvas" width="540" height="840" aria-label="Canopy Dash Dual-Ladder Climbing Canvas"></canvas>
+
+          <!-- START OVERLAY SCREEN -->
+          <div id="start-overlay" class="stage-overlay active" role="dialog" aria-labelledby="start-title">
+            <div class="overlay-card start-card">
+              <div class="hero-badge">ENDLESS DUAL-LADDER ARCADE</div>
+              <h2 id="start-title" class="overlay-hero-title">CANOPY DASH</h2>
+              <p class="overlay-hero-desc">
+                Leap between parallel bamboo ladders, outrun burning TNT fuses, and dodge snapping spikes &amp; hungry tree vipers!
+              </p>
+
+              <!-- Controls Guide -->
+              <div class="controls-guide-box">
+                <div class="section-kicker">CLIMBING CONTROLS</div>
+                <div class="controls-grid">
+                  <div class="control-item">
+                    <div class="key-group">
+                      <kbd>←</kbd><kbd>→</kbd> <span class="key-or">or</span> <kbd>A</kbd><kbd>D</kbd>
+                    </div>
+                    <span class="control-desc">Switch Left / Right Ladder</span>
+                  </div>
+                  <div class="control-item">
+                    <div class="key-group">
+                      <kbd>SPACE</kbd>
+                    </div>
+                    <span class="control-desc">Quick-Dash Opposite Ladder</span>
+                  </div>
+                  <div class="control-item">
+                    <div class="key-group">
+                      <kbd>↑</kbd> <span class="key-or">/</span> <kbd>W</kbd>
+                    </div>
+                    <span class="control-desc">Fast-Climb Boost (1.65x)</span>
+                  </div>
+                  <div class="control-item">
+                    <div class="key-group">
+                      <kbd>↓</kbd> <span class="key-or">/</span> <kbd>S</kbd>
+                    </div>
+                    <span class="control-desc">Brake / Hesitate (0.45x)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hazard Field Guide Preview Cards -->
+              <div class="hazard-guide-box">
+                <div class="section-kicker">CANOPY HAZARD FIELD GUIDE</div>
+                <div class="hazard-cards-grid">
+                  <div class="hazard-preview-card">
+                    <span class="hazard-icon" aria-hidden="true">⚙️</span>
+                    <div class="hazard-info">
+                      <strong>Retracting Spikes</strong>
+                      <span>Watch the amber glint! Pass while retracted or switch ladders.</span>
+                    </div>
+                  </div>
+                  <div class="hazard-preview-card">
+                    <span class="hazard-icon" aria-hidden="true">🧨</span>
+                    <div class="hazard-info">
+                      <strong>Fuse Dynamite</strong>
+                      <span>Don't touch TNT! Clear the blast radius before the fuse hits zero.</span>
+                    </div>
+                  </div>
+                  <div class="hazard-preview-card">
+                    <span class="hazard-icon" aria-hidden="true">🐍</span>
+                    <div class="hazard-info">
+                      <strong>Hungry Tree Snakes</strong>
+                      <span>Coiled vipers hiss and lunge across rungs to swallow you whole!</span>
+                    </div>
+                  </div>
+                  <div class="hazard-preview-card">
+                    <span class="hazard-icon" aria-hidden="true">🥥</span>
+                    <div class="hazard-info">
+                      <strong>Falling Coconuts</strong>
+                      <span>Watch the top lane warning arrow and sidestep falling boulders.</span>
+                    </div>
+                  </div>
+                  <div class="hazard-preview-card hazard-card-wide">
+                    <span class="hazard-icon" aria-hidden="true">🪵</span>
+                    <div class="hazard-info">
+                      <strong>Rotting Rungs &amp; Power-Ups</strong>
+                      <span>Cracked mossy rungs snap underfoot! Grab 🍌 Bananas, 🛡️ Vine Shields &amp; 🌶️ Chili Turbo.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btn-start-game" class="btn-primary-cta">
+                <span class="cta-icon" aria-hidden="true">🚀</span>
+                <span>CLIMB NOW</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- GAME OVER OVERLAY SCREEN (Hidden at start) -->
+          <div id="gameover-overlay" class="stage-overlay hidden" role="dialog" aria-labelledby="gameover-title" aria-hidden="true">
+            <div class="overlay-card gameover-card">
+              <div class="gameover-kicker">EXPEDITION TERMINATED</div>
+              <h2 id="gameover-title" class="overlay-gameover-title">WIPEOUT!</h2>
+
+              <div class="death-banner" role="alert">
+                <span class="death-skull" aria-hidden="true">💀</span>
+                <p id="death-reason-text" class="death-reason-text">Eaten by a Giant Tree Viper!</p>
+              </div>
+
+              <div class="final-stats-grid">
+                <div class="final-stat-box">
+                  <span class="final-stat-label">FINAL SCORE</span>
+                  <span id="final-score" class="final-stat-val mono-num">0</span>
+                </div>
+                <div class="final-stat-box">
+                  <span class="final-stat-label">ALTITUDE REACHED</span>
+                  <span id="final-altitude" class="final-stat-val mono-num">0m</span>
+                </div>
+                <div class="final-stat-box">
+                  <span class="final-stat-label">BANANAS COLLECTED</span>
+                  <span id="final-bananas" class="final-stat-val mono-num">0</span>
+                </div>
+              </div>
+
+              <form id="score-save-form" class="score-save-box" onsubmit="return false;">
+                <label for="arcade-player-name-input" class="input-label">RECORD YOUR CLIMB ON THE LEADERBOARD</label>
+                <div class="input-action-row">
+                  <input
+                    id="arcade-player-name-input"
+                    type="text"
+                    maxlength="32"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Enter your full name..."
+                  >
+                  <button type="button" id="btn-save-score" class="btn-tonal-action">SAVE SCORE</button>
+                </div>
+                <p id="save-score-feedback" class="save-feedback" aria-live="polite"></p>
+              </form>
+
+              <button type="button" id="btn-play-again" class="btn-primary-cta">
+                <span class="cta-icon" aria-hidden="true">🔄</span>
+                <span>CLIMB AGAIN</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Side Panel: Leaderboard Card + Live Hazard & Telemetry Card -->
+      <aside class="side-dashboard" aria-label="Leaderboard and Telemetry">
+        <!-- Card 1: Leaderboard -->
+        <section class="dashboard-card leaderboard-card" aria-labelledby="leaderboard-heading">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <span class="card-icon" aria-hidden="true">🏆</span>
+              <h2 id="leaderboard-heading" class="card-title">CANOPY HALL OF FAME</h2>
+            </div>
+            <button type="button" id="btn-reset-scores" class="btn-clear-board" title="Immediately wipe all recorded high scores">
+              Clear Board
+            </button>
+          </div>
+
+          <p id="leaderboard-subtext" class="card-subtext">Live server-synced Hall of Fame — full climber names</p>
+
+          <ul id="highscore-list" class="highscore-list" aria-live="polite">
+            <li class="empty-leaderboard-state">No climbs recorded yet — be the first!</li>
+          </ul>
+        </section>
+
+        <!-- Card 2: Live Hazard & Telemetry Card + Touch Controls -->
+        <section class="dashboard-card telemetry-card" aria-labelledby="telemetry-heading">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <span class="card-icon" aria-hidden="true">🧭</span>
+              <h2 id="telemetry-heading" class="card-title">LIVE BIOME &amp; TELEMETRY</h2>
+            </div>
+            <span id="hud-lane-indicator" class="lane-pill mono-num">LEFT LADDER</span>
+          </div>
+
+          <!-- Active Biome Banner -->
+          <div class="biome-status-box">
+            <div class="biome-meta">
+              <span class="biome-label">ACTIVE ALTITUDE ZONE</span>
+              <strong id="hud-biome-name" class="biome-name">Jungle Floor (0m–250m)</strong>
+            </div>
+            <div class="biome-progression-pills" aria-label="Biome Progression">
+              <span class="biome-step active" data-biome="0">Jungle Floor</span>
+              <span class="biome-step" data-biome="1">Canopy Mist</span>
+              <span class="biome-step" data-biome="2">Temple Ruins</span>
+              <span class="biome-step" data-biome="3">Volcano Peak</span>
+            </div>
+          </div>
+
+          <!-- Current Hazard Spawn Mix -->
+          <div class="hazard-mix-box">
+            <div class="mix-header">
+              <span class="biome-label">ACTIVE HAZARD SPAWN MIX</span>
+              <span id="hud-hazard-mix" class="mix-summary mono-num">Tier 1 · Balanced</span>
+            </div>
+            <div class="hazard-tags-row" id="hud-hazard-tags">
+              <span class="hazard-tag tag-spikes">⚙️ Spikes</span>
+              <span class="hazard-tag tag-dynamite">🧨 Dynamite</span>
+              <span class="hazard-tag tag-snake">🐍 Tree Vipers</span>
+              <span class="hazard-tag tag-coconut">🥥 Coconuts</span>
+              <span class="hazard-tag tag-rung">🪵 Rotting Rungs</span>
+            </div>
+          </div>
+
+          <!-- On-Screen Touch / Mouse Arcade Deck -->
+          <div class="touch-controls-deck">
+            <div class="biome-label">ARCADE TOUCH / MOUSE DECK</div>
+            <div class="touch-buttons-grid">
+              <button type="button" id="btn-touch-left" class="btn-arcade-touch" aria-label="Switch to Left Ladder">
+                <span class="touch-arrow">◀</span>
+                <span class="touch-caption">LEFT LADDER</span>
+              </button>
+              <button type="button" id="btn-touch-boost" class="btn-arcade-touch btn-touch-boost" aria-label="Fast-Climb Boost">
+                <span class="touch-arrow">▲</span>
+                <span class="touch-caption">BOOST</span>
+              </button>
+              <button type="button" id="btn-touch-right" class="btn-arcade-touch" aria-label="Switch to Right Ladder">
+                <span class="touch-arrow">▶</span>
+                <span class="touch-caption">RIGHT LADDER</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="sprites.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
