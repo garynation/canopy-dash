@@ -1,0 +1,10 @@
+services:
+  canopy-dash:
+    image: ghcr.io/garynation/canopy-dash:latest
+    build: .
+    container_name: canopy-dash
+    ports:
+      - "8092:80"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
