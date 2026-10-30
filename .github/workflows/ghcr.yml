@@ -23,9 +23,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/garynation/canopy-dash:latest
+      - name: Build and push Docker image (with retry)
+        run: |
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt: building and pushing ghcr.io/garynation/canopy-dash:latest..."
+            if docker build -t ghcr.io/garynation/canopy-dash:latest . && docker push ghcr.io/garynation/canopy-dash:latest; then
+              echo "Successfully built and pushed ghcr.io/garynation/canopy-dash:latest"
+              exit 0
+            fi
+            echo "Attempt $attempt failed, retrying in 5s..."
+            sleep 5
+          done
+          exit 1
