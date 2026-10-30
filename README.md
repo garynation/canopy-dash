@@ -79,8 +79,6 @@ Scores are persisted atomically to `data/leaderboard.json` (up to 50 stored reco
   ```
 - **`POST /api/leaderboard`**
   Submits or updates a climb record (`name`, `score`, `altitude`, `bananas`, `deathCause`, optional `id`/`runKey`). Updating an existing `id` retains the highest score, altitude, and banana count for that run.
-- **`POST /api/leaderboard/clear`** / **`POST /api/leaderboard/reset`** / **`DELETE /api/leaderboard`**
-  Resets `data/leaderboard.json` to an empty list (`[]`).
 - **`GET /api/health`**
   Returns service health status (`{"ok": true, "service": "canopy-dash", ...}`).
 

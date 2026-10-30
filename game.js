@@ -172,7 +172,6 @@
     dom.saveScoreFeedback = document.getElementById('save-score-feedback');
     dom.btnStartGame = document.getElementById('btn-start-game');
     dom.btnPlayAgain = document.getElementById('btn-play-again');
-    dom.btnResetScores = document.getElementById('btn-reset-scores');
     dom.btnMute = document.getElementById('btn-mute');
     dom.highscoreList = document.getElementById('highscore-list');
 
@@ -522,62 +521,6 @@
   }
 
   const recordPlayerScore = saveCurrentScore;
-
-  async function clearHighscores() {
-    state.highscores = [];
-    state.serverHighScore = 0;
-    try {
-      window.localStorage.removeItem(HIGHSCORE_STORAGE_KEY);
-    } catch (e) {
-      // Ignore storage errors
-    }
-    if (dom.hudHighscore) {
-      dom.hudHighscore.textContent = 'HI 000000';
-    }
-    if (dom.saveScoreFeedback) {
-      dom.saveScoreFeedback.textContent = '';
-    }
-    if (dom.btnSaveScore) {
-      state.scoreSavedForRun = false;
-      dom.btnSaveScore.textContent = 'SAVE SCORE';
-      dom.btnSaveScore.disabled = false;
-    }
-    renderHighscores();
-
-    if (canUseServerApi()) {
-      let cleared = false;
-      try {
-        const delResp = await window.fetch(LEADERBOARD_API_URL, {
-          method: 'DELETE',
-          cache: 'no-store',
-          headers: { Accept: 'application/json' },
-        });
-        if (delResp.ok) {
-          cleared = true;
-          state.serverSynced = true;
-        }
-      } catch (err) {
-        // Try POST /api/leaderboard/clear fallback below
-      }
-
-      if (!cleared) {
-        try {
-          const postResp = await window.fetch(`${LEADERBOARD_API_URL}/clear`, {
-            method: 'POST',
-            cache: 'no-store',
-            headers: { Accept: 'application/json' },
-          });
-          if (postResp.ok) {
-            state.serverSynced = true;
-          }
-        } catch (err) {
-          // Offline mode fallback already cleared localStorage
-        }
-      }
-    }
-
-    return state.highscores.slice();
-  }
 
   // --- Biome Helper ---
   function getCurrentBiome(altitude) {
@@ -1823,13 +1766,6 @@
       });
     }
 
-    if (dom.btnResetScores) {
-      dom.btnResetScores.addEventListener('click', (e) => {
-        e.preventDefault();
-        clearHighscores();
-      });
-    }
-
     if (dom.btnMute) {
       dom.btnMute.addEventListener('click', () => {
         const muted = Boolean(callAudio('toggleMute'));
@@ -1947,7 +1883,6 @@
     fetchLeaderboard,
     saveCurrentScore,
     recordPlayerScore,
-    clearHighscores,
     step(dtSeconds = 0.05) {
       stepSimulation(dtSeconds);
       renderScene();

@@ -166,7 +166,7 @@ class CanopyDashHTTPRequestHandler(SimpleHTTPRequestHandler):
     self.send_header("Pragma", "no-cache")
     self.send_header("Expires", "0")
     self.send_header("Access-Control-Allow-Origin", "*")
-    self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+    self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     self.send_header("Access-Control-Allow-Headers", "Content-Type")
     super().end_headers()
 
@@ -217,17 +217,9 @@ class CanopyDashHTTPRequestHandler(SimpleHTTPRequestHandler):
         "/api/leaderboard/reset",
         "/api/leaderboard/reset/",
     ):
-      with LEADERBOARD_LOCK:
-        save_scores_unlocked([])
       self._send_json(
-          200,
-          {
-              "ok": True,
-              "scores": [],
-              "highScore": 0,
-              "totalEntries": 0,
-              "updatedAt": now_iso(),
-          },
+          403,
+          {"ok": False, "error": "Clearing the leaderboard is disabled"},
       )
       return
 
@@ -251,17 +243,9 @@ class CanopyDashHTTPRequestHandler(SimpleHTTPRequestHandler):
         return
 
       if data.get("action") in ("clear", "reset") or data.get("reset") is True:
-        with LEADERBOARD_LOCK:
-          save_scores_unlocked([])
         self._send_json(
-            200,
-            {
-                "ok": True,
-                "scores": [],
-                "highScore": 0,
-                "totalEntries": 0,
-                "updatedAt": now_iso(),
-            },
+            403,
+            {"ok": False, "error": "Clearing the leaderboard is disabled"},
         )
         return
 
@@ -361,17 +345,9 @@ class CanopyDashHTTPRequestHandler(SimpleHTTPRequestHandler):
   def do_DELETE(self):
     parsed = urlparse(self.path)
     if parsed.path in ("/api/leaderboard", "/api/leaderboard/"):
-      with LEADERBOARD_LOCK:
-        save_scores_unlocked([])
       self._send_json(
-          200,
-          {
-              "ok": True,
-              "scores": [],
-              "highScore": 0,
-              "totalEntries": 0,
-              "updatedAt": now_iso(),
-          },
+          403,
+          {"ok": False, "error": "Clearing the leaderboard is disabled"},
       )
       return
 
